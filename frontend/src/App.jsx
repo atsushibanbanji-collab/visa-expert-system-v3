@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import DiagnosisPanel from './components/DiagnosisPanel';
 import VisualizationPanel from './components/VisualizationPanel';
+import VisaTypeSelection from './components/VisaTypeSelection';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 function App() {
+  const [selectedVisaType, setSelectedVisaType] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [conclusions, setConclusions] = useState([]);
   const [isFinished, setIsFinished] = useState(false);
@@ -13,17 +15,19 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Start consultation on mount
-  useEffect(() => {
-    startConsultation();
-  }, []);
-
-  const startConsultation = async () => {
+  const startConsultation = async (visaType) => {
     setLoading(true);
     setError(null);
+    setSelectedVisaType(visaType);
     try {
       const response = await fetch(`${API_BASE_URL}/consultation/start`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          visa_type: visaType,
+        }),
       });
       const data = await response.json();
       setCurrentQuestion(data.next_question);
@@ -108,27 +112,15 @@ function App() {
     }
   };
 
-  const handleRestart = async () => {
-    setLoading(true);
+  const handleRestart = () => {
+    // ビザタイプ選択画面に戻る
+    setSelectedVisaType(null);
+    setCurrentQuestion(null);
+    setQuestionHistory([]);
+    setConclusions([]);
+    setIsFinished(false);
+    setVisualizationData(null);
     setError(null);
-    try {
-      const response = await fetch(`${API_BASE_URL}/consultation/restart`, {
-        method: 'POST',
-      });
-      const data = await response.json();
-
-      setCurrentQuestion(data.next_question);
-      setQuestionHistory(data.next_question ? [data.next_question] : []);
-      setConclusions([]);
-      setIsFinished(false);
-
-      await fetchVisualization();
-    } catch (err) {
-      setError('診断の再開に失敗しました: ' + err.message);
-      console.error('Error restarting:', err);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -153,36 +145,44 @@ function App() {
         </div>
       )}
 
-      {/* Main Content - 2 Column Layout */}
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
-          {/* Left Panel - Diagnosis */}
-          <div className="h-full">
-            {loading && questionHistory.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-lg p-8 h-full flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-navy-900 mx-auto mb-4"></div>
-                  <p className="text-gray-600">読み込み中...</p>
+        {!selectedVisaType ? (
+          /* ビザタイプ選択画面 */
+          <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+            <VisaTypeSelection onSelectVisaType={startConsultation} />
+          </div>
+        ) : (
+          /* 診断画面 - 2カラムレイアウト */
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
+            {/* Left Panel - Diagnosis */}
+            <div className="h-full">
+              {loading && questionHistory.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-lg p-8 h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-navy-900 mx-auto mb-4"></div>
+                    <p className="text-gray-600">読み込み中...</p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <DiagnosisPanel
-                currentQuestion={currentQuestion}
-                onAnswer={handleAnswer}
-                onBack={handleBack}
-                onRestart={handleRestart}
-                conclusions={conclusions}
-                isFinished={isFinished}
-                questionHistory={questionHistory}
-              />
-            )}
-          </div>
+              ) : (
+                <DiagnosisPanel
+                  currentQuestion={currentQuestion}
+                  onAnswer={handleAnswer}
+                  onBack={handleBack}
+                  onRestart={handleRestart}
+                  conclusions={conclusions}
+                  isFinished={isFinished}
+                  questionHistory={questionHistory}
+                />
+              )}
+            </div>
 
-          {/* Right Panel - Visualization */}
-          <div className="h-full">
-            <VisualizationPanel visualizationData={visualizationData} />
+            {/* Right Panel - Visualization */}
+            <div className="h-full">
+              <VisualizationPanel visualizationData={visualizationData} />
+            </div>
           </div>
-        </div>
+        )}
       </main>
 
       {/* Footer */}

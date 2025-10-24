@@ -16,10 +16,29 @@ kb = None
 consultation = None
 
 
-def load_knowledge_base():
+def auto_detect_visa_type(rule_data: dict) -> str:
+    """ルールからビザタイプを自動判定"""
+    conclusion = rule_data.get('conclusion', '')
+    conditions_text = ' '.join([c['fact_name'] for c in rule_data.get('conditions', [])])
+
+    # 結論または条件にビザタイプのキーワードが含まれているか確認
+    if 'Eビザ' in conclusion or 'Eビザ' in conditions_text:
+        return 'E'
+    elif 'Lビザ' in conclusion or 'Blanket L' in conclusion or 'Lビザ' in conditions_text or 'Blanket L' in conditions_text:
+        return 'L'
+    elif 'H-1B' in conclusion or 'H-1B' in conditions_text:
+        return 'H-1B'
+    elif 'Bビザ' in conclusion or 'B-1' in conclusion or 'Bビザ' in conditions_text:
+        return 'B'
+    elif 'J-1' in conclusion or 'J-1' in conditions_text:
+        return 'J-1'
+
+    return None
+
+
+def load_knowledge_base(visa_type: str = None):
     """知識ベースをJSONファイルから読み込み"""
-    global kb
-    kb = KnowledgeBase()
+    kb = KnowledgeBase(visa_type=visa_type)
 
     # JSONファイルのパスを取得
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -31,6 +50,10 @@ def load_knowledge_base():
         data = json.load(f)
 
     for rule_data in data["rules"]:
+        # ビザタイプが指定されていない場合は自動判定
+        if 'visa_type' not in rule_data or rule_data['visa_type'] is None:
+            rule_data['visa_type'] = auto_detect_visa_type(rule_data)
+
         rule = Rule(**rule_data)
         kb.add_rule(rule)
 
@@ -39,6 +62,10 @@ def load_knowledge_base():
 
 
 # Request/Response models
+class StartRequest(BaseModel):
+    visa_type: str  # E, L, B, H-1B, J-1
+
+
 class AnswerRequest(BaseModel):
     question: str
     answer: bool
@@ -46,6 +73,7 @@ class AnswerRequest(BaseModel):
 
 class StartResponse(BaseModel):
     next_question: Optional[str]
+    visa_type: str
 
 
 class AnswerResponse(BaseModel):
@@ -63,19 +91,19 @@ class VisualizationResponse(BaseModel):
 
 
 @router.post("/consultation/start", response_model=StartResponse)
-async def start_consultation():
+async def start_consultation(request: StartRequest):
     """診断セッションを開始"""
     global consultation, kb
 
-    if kb is None:
-        load_knowledge_base()
+    # 選択されたビザタイプで知識ベースを読み込み
+    kb = load_knowledge_base(visa_type=request.visa_type)
 
     consultation = Consultation(kb)
     consultation.start()
 
     next_question = consultation.get_next_question()
 
-    return StartResponse(next_question=next_question)
+    return StartResponse(next_question=next_question, visa_type=request.visa_type)
 
 
 @router.post("/consultation/answer", response_model=AnswerResponse)

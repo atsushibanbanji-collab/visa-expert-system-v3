@@ -1,5 +1,5 @@
 """Rule クラス - エキスパートシステムのルールを表現"""
-from typing import List, Literal
+from typing import List, Literal, Optional
 from pydantic import BaseModel
 
 
@@ -17,6 +17,7 @@ class Rule(BaseModel):
     conclusion: str  # 結論となる事実の名前
     conclusion_value: bool = True  # 結論の真偽値
     priority: int = 0  # 優先順位（質問の順序制御に使用）
+    visa_type: Optional[str] = None  # ビザタイプ（E, L, B, H-1B, J-1など）
 
     def can_fire(self, facts: dict) -> bool:
         """ルールが発火可能かを判定"""
