@@ -1,4 +1,18 @@
+import { useRef, useEffect } from 'react';
+
 const VisualizationPanel = ({ visualizationData, currentQuestion }) => {
+  const currentRuleRef = useRef(null);
+
+  // 現在の質問に関連するルールに自動スクロール
+  useEffect(() => {
+    if (currentRuleRef.current) {
+      currentRuleRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+  }, [currentQuestion]);
+
   const getConditionColor = (status, isDerivable) => {
     if (status === 'satisfied') return 'bg-green-100 text-green-800 border-green-300';
     if (status === 'not_satisfied') return 'bg-red-100 text-red-800 border-red-300';
@@ -69,44 +83,6 @@ const VisualizationPanel = ({ visualizationData, currentQuestion }) => {
           推論過程の可視化
         </h2>
 
-        {/* Legend */}
-        <div className="bg-gray-50 rounded-lg p-3 mb-4">
-          <h3 className="text-xs font-semibold text-gray-700 mb-2">凡例 - ルールの状態</h3>
-          <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded"></div>
-              <span className="text-xs">発火済み</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-yellow-400 rounded"></div>
-              <span className="text-xs">今の質問に関係</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-orange-300 rounded"></div>
-              <span className="text-xs">推論中</span>
-            </div>
-          </div>
-          <h3 className="text-xs font-semibold text-gray-700 mb-2 mt-2">条件の状態</h3>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
-              <span className="text-xs">未確認</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
-              <span className="text-xs">満たす</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-100 border border-red-300 rounded"></div>
-              <span className="text-xs">満たさない</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-purple-100 border border-purple-300 rounded"></div>
-              <span className="text-xs">導出可能</span>
-            </div>
-          </div>
-        </div>
-
         {/* Fired Rules Summary */}
         {fired_rules && fired_rules.length > 0 && (
           <div className="bg-blue-50 rounded-lg p-3 mb-4 border-l-4 border-blue-600">
@@ -157,6 +133,7 @@ const VisualizationPanel = ({ visualizationData, currentQuestion }) => {
               return (
           <div
             key={rule.rule_id}
+            ref={ruleState === 'current' ? currentRuleRef : null}
             className={`border-2 rounded-lg p-4 ${stateStyles[ruleState]}`}
           >
             {/* Rule Header */}
