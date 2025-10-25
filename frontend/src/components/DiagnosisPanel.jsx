@@ -16,7 +16,7 @@ const DiagnosisPanel = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8 h-full flex flex-col">
+    <div className="bg-white rounded-lg shadow-lg p-8 h-full max-h-[calc(100vh-200px)] flex flex-col overflow-hidden">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-navy-900 mb-2">
           ビザ選定エキスパートシステム
@@ -42,7 +42,7 @@ const DiagnosisPanel = ({
       )}
 
       {/* Question area */}
-      <div className="flex-1 mb-6">
+      <div className="flex-1 mb-6 overflow-y-auto">
         {!isFinished && currentQuestion && (
           <div className="bg-navy-50 rounded-lg p-6 border-l-4 border-navy-600">
             <p className="text-lg font-medium text-navy-900 mb-4">
