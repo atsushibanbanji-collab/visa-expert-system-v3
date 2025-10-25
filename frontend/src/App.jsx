@@ -179,7 +179,10 @@ function App() {
 
             {/* Right Panel - Visualization */}
             <div className="h-full">
-              <VisualizationPanel visualizationData={visualizationData} />
+              <VisualizationPanel
+                visualizationData={visualizationData}
+                currentQuestion={currentQuestion}
+              />
             </div>
           </div>
         )}
