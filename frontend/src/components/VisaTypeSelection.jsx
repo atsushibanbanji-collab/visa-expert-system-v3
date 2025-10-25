@@ -3,20 +3,17 @@ const VisaTypeSelection = ({ onSelectVisaType }) => {
     {
       type: 'E',
       title: 'Eビザ（投資・貿易ビザ）',
-      description: '日米間の投資や貿易を行う企業の従業員が対象',
-      icon: '💼'
+      description: '日米間の投資や貿易を行う企業の従業員が対象'
     },
     {
       type: 'L',
       title: 'Lビザ（企業内転勤ビザ）',
-      description: 'グループ会社間の異動（マネージャーまたはスペシャリスト）',
-      icon: '🏢'
+      description: 'グループ会社間の異動（マネージャーまたはスペシャリスト）'
     },
     {
       type: 'B',
       title: 'Bビザ（商用・観光ビザ）',
-      description: '短期の商用活動、会議、研修などが対象',
-      icon: '✈️'
+      description: '短期の商用活動、会議、研修などが対象'
     }
   ];
 
@@ -38,7 +35,6 @@ const VisaTypeSelection = ({ onSelectVisaType }) => {
             onClick={() => onSelectVisaType(visa.type)}
             className="group bg-gradient-to-br from-navy-50 to-white border-2 border-navy-200 hover:border-navy-600 hover:shadow-xl rounded-xl p-6 text-left transition-all duration-200 transform hover:scale-105"
           >
-            <div className="text-4xl mb-3">{visa.icon}</div>
             <h3 className="text-xl font-bold text-navy-900 mb-2 group-hover:text-navy-600">
               {visa.title}
             </h3>
